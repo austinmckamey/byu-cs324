@@ -1,0 +1,50 @@
+1. The exec.c program first prints the program name and 
+pid. It then sleeps for 30 seconds.It then checks if there 
+is an argument pointing to a program to execute, and exits 
+if there isn't. If there is, that program is executed, with 
+print lines on either side.
+2. The final printf() statement will be executed if there
+is a program parameter set as an argument and if the
+program being executed finishes.
+3. ./exec /bin/cat
+Program "./exec" has pid 2894921. Sleeping.
+Running exec of "/bin/cat"
+4. ps -p 2894921 -o user,pid,ppid,state,ucmd
+USER         PID    PPID S CMD
+am895    2894921 2891577 S exec
+ps -p 2894921 -o user,pid,ppid,state,ucmd
+USER         PID    PPID S CMD
+am895    2894921 2891577 S cat
+5. The fields are all the same except for the command. This 
+makes sense, as the command during the sleep is to exec,
+while after, it runs the program we pointed to, which was cat.
+The user of course stays the same, as well as the process we 
+are running on. The state is S, meaning both are running in 
+an interruptible sleep, waiting for the event to complete.
+6. ./exec /dne
+Program "./exec" has pid 2895902. Sleeping.
+Running exec of "/dne"
+End of program "./exec".
+7. Once again, the fork.c program prints the pid. It then 
+checks if the program can be forked, exiting if it isn't 
+possible. It is then split into 4 sections, A-D. Section A
+prints the pid and sleeps for 30 seconds. B is only executed by
+the child, at which point it sleeps for 30 seconds and exits.
+C is executed by the parent process, and sleeps for 60 seconds
+before exiting. D does not execute because B and C catch all
+possible values of pid.
+8. The parent runs A,C,D.
+The child runs A,B.
+9. ps -p 2905580,2905581 -o user,pid,ppid,state,ucmd --forest
+USER         PID    PPID S CMD
+am895    2905580 2891577 S fork
+am895    2905581 2905580 S  \_ fork
+ps -p 2905580,2905581 -o user,pid,ppid,state,ucmd --forest
+USER         PID    PPID S CMD
+am895    2905580 2891577 S fork
+am895    2905581 2905580 Z  \_ fork <defunct>
+10. The second call to ps shows the state of the fork after the
+child has finished it's execution, but it has not been reaped yet.
+This means it is considered a 'zombie', while the parent is still
+'sleep'.
+11. 

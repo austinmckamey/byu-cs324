@@ -16,6 +16,7 @@
 /* Misc manifest constants */
 #define MAXLINE    1024   /* max line size */
 #define MAXARGS     128   /* max args on a command line */
+#define MAXCMDS      20
 
 /* Global variables */
 extern char **environ;      /* defined in libc */
@@ -106,7 +107,105 @@ int main(int argc, char **argv)
 */
 void eval(char *cmdline) 
 {
-    return;
+    char *argv[MAXARGS];
+    memset(argv, 0, sizeof(argv));
+    int result = parseline(cmdline, argv);
+    if(result) {}
+
+    int cmds[MAXCMDS];
+    int stdin_redir[MAXCMDS];
+    int stdout_redir[MAXCMDS];
+    int num_commands = parseargs(argv,cmds,stdin_redir,stdout_redir);
+
+    if (argv[0] == NULL) 
+    {
+        return;
+    }
+
+    builtin_cmd(argv);
+
+    int i;
+    int pipes[num_commands - 1][2];
+    int pid[num_commands];
+
+    for (i = 0; i < num_commands - 1; i++)
+    {
+        if (pipe(pipes[i]) < 0)
+        {
+            unix_error("Failed to pipe");
+        }
+    }
+
+    for (i = 0; i < num_commands; i++)
+    {
+        pid[i] = fork();
+        setpgid(pid[i], pid[0]);
+        if (pid[i] == 0) {
+            if (num_commands != 1) 
+            {
+                int j;
+                for (j = 0; j < num_commands - 1; j++) 
+                {
+                    if (i - 1 != j) {
+                        close(pipes[j][0]);
+                    }
+                    if (i != j) {
+                        close(pipes[j][1]);
+                    }
+                }
+                int r;
+                int w;
+                if (i != 0) 
+                {
+                    r = pipes[i - 1][0];
+                }
+                if (i != num_commands - 1)
+                {
+                    w = pipes[i][1];
+                }
+                if (i == 0) 
+                {
+                    dup2(w,1);
+                    close(w);
+                } else if (i == num_commands - 1) {
+                    dup2(r,0);
+                    close(r);
+                } else {
+                    dup2(w,1);
+                    dup2(r,0);
+                    close(w);
+                    close(r);
+                }
+            }
+            if (stdin_redir[0] > 0 && i == 0)
+            {
+                FILE *input = fopen(argv[stdin_redir[0]], "a+");
+                int fd = fileno(input);
+                dup2(fd, 0);
+                close(fd);
+            }
+            if (stdout_redir[num_commands - 1] > 0 && (i == num_commands - 1))
+            {
+                FILE *output = fopen(argv[stdout_redir[num_commands - 1]], "w+");
+                int fd = fileno(output);
+                dup2(fd, 1);
+                close(fd);
+            }
+            execve(argv[cmds[i]], &argv[cmds[i]], environ);
+        }
+    }
+
+    for (i = 0; i < num_commands - 1; i++) 
+    {
+        close(pipes[i][0]);
+        close(pipes[i][1]);
+    }
+    int child_status;
+    pid_t wpid;
+    while ((wpid = waitpid(-1, &child_status, 0)) > 0)
+    {
+
+    }
 }
 
 /* 
@@ -233,6 +332,9 @@ int parseline(const char *cmdline, char **argv)
  */
 int builtin_cmd(char **argv) 
 {
+    if(strcmp(argv[0], "quit") == 0) {
+        exit(0);
+    }
     return 0;     /* not a builtin command */
 }
 

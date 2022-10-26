@@ -1,0 +1,86 @@
+1. The exec.c program first prints the program number and 
+pid. It then checks if there is an argument pointing to a 
+program to execute, and exits if there isn't. If there is,
+that program is executed, with print lines on either side.
+2. The final printf() statement will be executed if there
+is a program parameter set as an argument and if the
+program being executed finishes.
+3. ./exec /bin/cat
+Program "./exec" has pid 836049. Sleeping.
+Running exec of "/bin/cat"
+4. ps -p 836049 -o user,pid,ppid,state,ucmd
+USER         PID    PPID S CMD
+am895     836049  834487 S exec
+ps -p 836049 -o user,pid,ppid,state,ucmd
+USER         PID    PPID S CMD
+am895     836049  834487 S cat
+5. All of the fields are the same except for the command
+being executed. This is because the exec command finished
+and began to execute the cat program we passed into it.
+6. ./exec /dne
+Program "./exec" has pid 836578. Sleeping.
+Running exec of "/dne"
+End of program "./exec".
+7. As before, the fork program first prints the pid. It then 
+makes sure that the process can be forked. The rest of the
+program is split into sections A-D. Section A starts by
+printing the pid and sleeps for 30 seconds. B is only executed by
+the child, at which point it sleeps for 30 seconds and exits.
+C is executed by the parent process, and sleeps for 60 seconds
+before exiting. D does not execute because B and C catch all
+possible values of pid.
+8. The parent runs A,C,D.
+The child runs A,B.
+9. ps -p 2905580,2905581 -o user,pid,ppid,state,ucmd --forest
+USER         PID    PPID S CMD
+am895    2905580 2891577 S fork
+am895    2905581 2905580 S  \_ fork
+ps -p 2905580,2905581 -o user,pid,ppid,state,ucmd --forest
+USER         PID    PPID S CMD
+am895    2905580 2891577 S fork
+am895    2905581 2905580 Z  \_ fork <defunct>
+10. The second call to ps shows the state of the fork after the
+child has finished it's execution, but it has not been reaped yet.
+This means it is considered a 'zombie', while the parent is still
+'sleep'.
+11. wait(&status) should be inserted between the two 30 second 
+sleep commands in Section C.
+12. ps -p 837154,837155 -o user,pid,ppid,state,ucmd --forest
+USER         PID    PPID S CMD
+am895     837154  834487 S fork
+am895     837155  837154 S  \_ fork
+USER         PID    PPID S CMD
+am895     837154  834487 S fork
+13. The second call to ps does not have the child process
+included, because we added code to reap it once it was done.
+14. ps -p 838140,838141 -o user,pid,ppid,state,ucmd
+USER         PID    PPID S CMD
+am895     838140  834487 S fork
+am895     838141  838140 S fork
+USER         PID    PPID S CMD
+am895     838141       1 S fork
+15. The parent process terminates first, exiting the program.
+However, the child process has not completed yet, so it is still 
+running. It's parent id has changed to 1 because it already
+terminated.
+16. BEFORE FORK
+SECTION A
+SECTION C
+SECTION A
+SECTION B
+17. Both processes write to the file. In this case, the parent
+writes to the file first in section A and C. Then the child
+writes to the file in section A and B.
+18. Starting program; process has pid 849402
+Section A;  pid 849402
+Section C
+Section A;  pid 849404
+Section B
+hello from Section B
+19. Program "./fork" has pid 850771.
+Running exec of "/bin/cat"
+foobar
+20. Program "./fork" has pid 854886
+Running exec of "/bin/cat"
+fork-output.text
+foobar

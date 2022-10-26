@@ -7,8 +7,6 @@
 #include <string.h>
 
 #define BUF_SIZE 500
-#define MAX_BYTES 4096
-#define TOTAL_BYTES 16384
 
 int main(int argc, char *argv[]) {
 	struct addrinfo hints;
@@ -48,7 +46,7 @@ int main(int argc, char *argv[]) {
 	memset(&hints, 0, sizeof(struct addrinfo));
 	hints.ai_family = af;    /* Allow IPv4, IPv6, or both, depending on
 				    what was specified on the command line. */
-	hints.ai_socktype = SOCK_STREAM; /* Datagram socket */
+	hints.ai_socktype = SOCK_DGRAM; /* Datagram socket */
 	hints.ai_flags = 0;
 	hints.ai_protocol = 0;  /* Any protocol */
 
@@ -86,67 +84,14 @@ int main(int argc, char *argv[]) {
 
 	freeaddrinfo(result);   /* No longer needed */
 
-	char *buffer[MAX_BYTES];
-	int offset = 0, bytesread = 0, totalbytesread = 0;
-	while(1) {
-		bytesread = fread(buffer + offset, sizeof *buffer, 512, stdin);
-		totalbytesread += bytesread;
-		offset = totalbytesread;
-		if (bytesread < 512) {
-			break;
-		}
-	}
-	buffer[totalbytesread] = '\0';
-
-	printf("%d\n",totalbytesread);
-
-	int totalbytessent = totalbytesread + 1;
-	int sent = 0;
-	while(1) {
-		totalbytessent -= sent;
-		if (totalbytessent >= 27) {
-			sent = write(sfd, buffer, 27);
-		}
-		else {
-			write(sfd, buffer, totalbytessent);
-			break;
-		}
-	}
-
-	char *readbuffer[TOTAL_BYTES];
-	int readoffset = 0, bread = 0, tbread = 0;
-	while(1) {
-		bread = read(sfd,readbuffer + readoffset,512);
-		tbread += bread;
-		readoffset = tbread;
-		if(bread < 512) {
-			break;
-		}
-	}
-	readbuffer[tbread] = '\0';
-
-	printf("%d\n", tbread);
-
-	int tbsent = tbread + 1;
-	int bsent = 0;
-	while(1) {
-		tbsent -= bsent;
-		if (tbsent >= 512) {
-			bsent = write(stdout,readbuffer,512);
-		} else {
-			write(stdout,readbuffer,tbsent);
-			break;
-		}
-	}
-
 	/* SECTION C - interact with server; send, receive, print messages */
 
 	/* Send remaining command-line arguments as separate
 	   datagrams, and read responses from server */
 
-	/*for (j = hostindex + 2; j < argc; j++) {
+	for (j = hostindex + 2; j < argc; j++) {
 		len = strlen(argv[j]) + 1;
-		+1 for terminating null byte 
+		/* +1 for terminating null byte */
 
 		if (len + 1 > BUF_SIZE) {
 			fprintf(stderr,
@@ -159,15 +104,15 @@ int main(int argc, char *argv[]) {
 			exit(EXIT_FAILURE);
 		}
 
-		nread = read(sfd, buf, BUF_SIZE);
+		/*nread = read(sfd, buf, BUF_SIZE);
 		if (nread == -1) {
 			perror("read");
 			exit(EXIT_FAILURE);
 		}
 
-		printf("Received %zd bytes: %s\n", nread, buf);
+		printf("Received %zd bytes: %s\n", nread, buf);*/
 
-	}*/
+	}
 
 	exit(EXIT_SUCCESS);
 }
