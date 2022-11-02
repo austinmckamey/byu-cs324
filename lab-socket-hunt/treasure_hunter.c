@@ -114,16 +114,16 @@ int main(int argc, char *argv[]) {
 		ipv4addr_remote = *(struct sockaddr_in *)rp->ai_addr;
 		ipv4addr_remote.sin_port = port;
 		socklen_t remote_addr_len = sizeof(struct sockaddr_in);
-		socklen_t addrlen = sizeof(struct sockaddr_in);
-		port_local = getsockname(sfd, (struct sockaddr *)&ipv4addr_local, &addrlen);
-		sendto(sfd, &buf, 8, 0,(struct sockaddr *) &ipv4addr_remote, remote_addr_len);
+		//socklen_t addrlen = sizeof(struct sockaddr_in);
+		//port_local = getsockname(sfd, (struct sockaddr *)&ipv4addr_local, &addrlen);
+		sendto(sfd, &buf, 8, 0, (struct sockaddr *) &ipv4addr_remote, remote_addr_len);
 		bytes_received = recvfrom(sfd, buf_read, 256, 0, NULL, NULL);
 	} else {
 		ipv6addr_remote = *(struct sockaddr_in6 *)rp->ai_addr;
 		ipv6addr_remote.sin6_port = port;
 		socklen_t remote_addr_len = sizeof(struct sockaddr_in6);
-		socklen_t addrlen = sizeof(struct sockaddr_in6);
-		port_local = getsockname(sfd, (struct sockaddr *)&ipv6addr_local, &addrlen);
+		//socklen_t addrlen = sizeof(struct sockaddr_in6);
+		//port_local = getsockname(sfd, (struct sockaddr *)&ipv6addr_local, &addrlen);
 		sendto(sfd, &buf, 8, 0, (struct sockaddr *) &ipv6addr_remote, remote_addr_len);
 		bytes_received = recvfrom(sfd, buf_read, 256, 0, NULL, NULL);
 	}
@@ -243,7 +243,6 @@ int main(int argc, char *argv[]) {
 			ipv4addr_remote.sin_port = port;
 			socklen_t remote_addr_len = sizeof(struct sockaddr_in);
 			socklen_t addrlen = sizeof(struct sockaddr_in);
-			getsockname(sfd, (struct sockaddr *)&ipv4addr_local, &addrlen);
 			sendto(sfd, &new_buf, 4, 0,(struct sockaddr *) &ipv4addr_remote, remote_addr_len);
 			bytes_received = recvfrom(sfd, buf_read, 256, 0, NULL, NULL);
 		} else {
@@ -251,7 +250,6 @@ int main(int argc, char *argv[]) {
 			ipv6addr_remote.sin6_port = port;
 			socklen_t remote_addr_len = sizeof(struct sockaddr_in6);
 			socklen_t addrlen = sizeof(struct sockaddr_in6);
-			getsockname(sfd, (struct sockaddr *)&ipv6addr_local, &addrlen);
 			sendto(sfd, &new_buf, 4, 0, (struct sockaddr *) &ipv6addr_remote, remote_addr_len);
 			bytes_received = recvfrom(sfd, buf_read, 256, 0, NULL, NULL);
 		}	

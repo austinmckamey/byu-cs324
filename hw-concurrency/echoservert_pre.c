@@ -106,9 +106,9 @@ int main(int argc, char *argv[]) {
 
 	while (1) {
 		clientlen = sizeof(struct sockaddr_storage);
-		printf("before accept\n");
+		printf("before accept server\n");
 		connfd = accept(sfd, (struct sockaddr *) &clientaddr, &clientlen);
-		printf("after accept\n");
+		printf("after accept server\n");
 		sbuf_insert(&sbuf, connfd); /* Insert connfd in buffer */
 	}
 }
