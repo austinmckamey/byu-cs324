@@ -13,8 +13,8 @@ all: proxy
 proxy.o: proxy.c
 	$(CC) $(CFLAGS) -c proxy.c
 
-proxy: proxy.o
-	$(CC) $(CFLAGS) proxy.o -o proxy $(LDFLAGS)
+proxy: proxy.o sbuf.c
+	$(CC) $(CFLAGS) proxy.o sbuf.c -o proxy $(LDFLAGS)
 
 # Creates a tarball in ../proxylab-handin.tar that you can then
 # hand in. DO NOT MODIFY THIS!
