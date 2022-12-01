@@ -31,10 +31,36 @@
   can do. It can do a lot.
 */
 
+/* Runtimes 
+  omp_get_wtime/elapsedtime
+  1 - 29.30/33.70
+  2 - 16.56/20.83
+  4 - 9.48/13.78
+  8 - 6.79/11.29
+  16 - 5.65/10.10
+  32 - 5.09/09.39
+
+  OMP_NUM_THREADS=32 time  ./mandelbrot 0.27085 0.27100 0.004640 0.004810 1000 8192 pic.ppm
+
+  Questions
+  1. 20
+  2. The time decreases and is almost split in half at first.
+  3. Using four threads was 3.09 times faster than using one thread in the parellel region.
+  4. The change from 8 to 16 threads drastically broke the trend by only decreasing by about 15% instead of 50%.
+  5. At this point, the problem cannot be split into as many subproblems necessary to reduce time by the same amount.
+  6. Using four threads was 2.45 times faster than using one thread overall.
+  7. 2.45/4 = 0.6125.
+  8. The efficiency is less than one because the time was not 4 times faster with four threads.
+  9. The fraction of parallelizable code is 0.87.
+  10. As alpha approaches infinity, the elapsed time approaches (1-p)T, as the other part of the equation will equal 0.
+
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <stdint.h>
+#include <omp.h>
 
 int main(int argc, char* argv[])
 {
@@ -80,6 +106,9 @@ int main(int argc, char* argv[])
   int k; /* Iteration counter */
   int *saved = malloc(sizeof(int)*yres*xres);
 
+  double time1 = omp_get_wtime();
+
+  #pragma omp parallel for private(j,k) firstprivate(i)
   for (j = 0; j < yres; j++) {
     y = ymax - j * dy;
     for(i = 0; i < xres; i++) {
@@ -98,6 +127,9 @@ int main(int argc, char* argv[])
       saved[xres * j + i] = k;
     }
   }
+
+  double time2 = omp_get_wtime();
+  printf("Time: %f\n", time2-time1);
 
   for (j = 0; j < yres; j++) {
     for(i = 0; i < xres; i++) {
